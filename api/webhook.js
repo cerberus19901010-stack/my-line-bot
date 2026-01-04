@@ -2,17 +2,17 @@ const line = require('@line/bot-sdk');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const { kv } = require('@vercel/kv');
 
-// 配置 LINE SDK
-const config = {
+// 初始化 LINE 客戶端
+const client = new line.Client({
   channelAccessToken: process.env.LINE_CHANNEL_ACCESS_TOKEN,
-  channelSecret: process.env.LINE_CHANNEL_SECRET,
-};
+  channelSecret: process.env.LINE_CHANNEL_SECRET
+});
 
-const client = new line.Client(config);
+// 初始化 Gemini AI
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 module.exports = async (req, res) => {
-  // 必須回覆 200 給 LINE 的 Verify 測試
+  // 必須處理 LINE Verify 的 GET 請求或非 POST 請求
   if (req.method !== 'POST') {
     return res.status(200).send('OK');
   }
@@ -21,12 +21,17 @@ module.exports = async (req, res) => {
     const events = req.body.events || [];
     
     for (let event of events) {
+      // 只處理文字訊息
       if (event.type === 'message' && event.message.type === 'text') {
         const userId = event.source.userId;
         const userText = event.message.text;
 
-        // 1. 召喚管家設定
-        const model = genAI.getGenerativeModel({ model: "models/gemini-1.5-flash" });
+        // 1. 召喚管家：強制使用 v1 版本以避開 404 錯誤
+        const model = genAI.getGenerativeModel(
+          { model: "gemini-1.5-flash" },
+          { apiVersion: 'v1' }
+        );
+
         const prompt = `你現在是 Cayla 最厲害、最貼心的專屬私人工管家。你的工作是幫 Cayla 紀錄生活。
         現在 Cayla 說了：「${userText}」。
         請依照以下規則回覆：
@@ -38,14 +43,10 @@ module.exports = async (req, res) => {
         const response = await result.response;
         const replyText = response.text();
 
-        // 2. 存入 KV 資料庫
-        try {
-          await kv.set(`note:${userId}:${Date.now()}`, userText);
-        } catch (kvError) {
-          console.error('資料庫寫入失敗:', kvError);
-        }
+        // 2. 存入資料庫
+        await kv.set(`note:${userId}:${Date.now()}`, userText);
 
-        // 3. 回傳訊息
+        // 3. 回傳訊息給 LINE
         await client.replyMessage(event.replyToken, {
           type: 'text',
           text: replyText
@@ -55,7 +56,6 @@ module.exports = async (req, res) => {
     return res.status(200).send('OK');
   } catch (error) {
     console.error('系統運作異常:', error);
-    // 即使出錯也盡量回傳 200 防止 LINE 端的 Verify 報錯
-    return res.status(200).send('Error but handled');
+    return res.status(200).send('Error Handled');
   }
 };
