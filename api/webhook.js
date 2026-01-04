@@ -1,9 +1,11 @@
-const { MessagingApiClient } = require('@line/bot-sdk');
+const line = require('@line/bot-sdk'); // 這裡改了
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const { kv } = require('@vercel/kv');
 
-const client = new MessagingApiClient({
-  channelAccessToken: process.env.LINE_CHANNEL_ACCESS_TOKEN
+// 初始化 LINE 客戶端 (這裡的寫法改了)
+const client = new line.Client({
+  channelAccessToken: process.env.LINE_CHANNEL_ACCESS_TOKEN,
+  channelSecret: process.env.LINE_CHANNEL_SECRET
 });
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
@@ -18,20 +20,20 @@ module.exports = async (req, res) => {
         const userId = event.source.userId;
         const userText = event.message.text;
 
-        // 呼叫 Gemini AI
-        const model = genAI.getGenerativeModel({ model: "gemini-pro"});
-        const prompt = `你是一個記事本助手。用戶說："${userText}"。請判斷這是否包含需要紀錄的事項，如果是，請簡短回覆「✅ 已記錄：...」。`;
+        // 1. 呼叫 Gemini
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const prompt = `你是一個記事助手。用戶說："${userText}"。請提取重點並回覆「✅ 已記錄：...」，如果不是紀錄事項則簡單回覆。`;
         const result = await model.generateContent(prompt);
         const response = await result.response;
         const replyText = response.text();
 
-        // 存入資料庫
+        // 2. 存入資料庫
         await kv.set(`note:${userId}:${Date.now()}`, userText);
 
-        // 回傳 LINE 訊息
-        await client.replyMessage({
-          replyToken: event.replyToken,
-          messages: [{ type: 'text', text: replyText }]
+        // 3. 回傳 LINE (這裡的語法也微調了)
+        await client.replyMessage(event.replyToken, {
+          type: 'text',
+          text: replyText
         });
       }
     }
