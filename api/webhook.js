@@ -28,7 +28,7 @@ module.exports = async (req, res) => {
 
         // 1. 召喚管家：強制使用 v1 版本以避開 404 錯誤
         const model = genAI.getGenerativeModel(
-          { model: "gemini-1.5-flash" },
+          { model: "gemini-3-flash-preview" },
           { apiVersion: 'v1' }
         );
 
