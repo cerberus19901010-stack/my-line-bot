@@ -26,7 +26,7 @@ module.exports = async (req, res) => {
         const userText = event.message.text;
 
         // 1. 召喚管家設定
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const model = genAI.getGenerativeModel({ model: "gemini-pro" });
         const prompt = `你現在是 Cayla 最厲害、最貼心的專屬私人工管家。你的工作是幫 Cayla 紀錄生活。
         現在 Cayla 說了：「${userText}」。
         請依照以下規則回覆：
