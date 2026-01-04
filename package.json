@@ -1,8 +1,11 @@
 {
   "name": "line-gemini-bot",
   "version": "1.0.0",
-  "description": "LINE Bot with Gemini AI and Vercel KV",
+  "description": "LINE Bot for Cayla",
   "main": "api/webhook.js",
+  "scripts": {
+    "start": "node api/webhook.js"
+  },
   "dependencies": {
     "@line/bot-sdk": "^7.5.2",
     "@google/generative-ai": "^0.21.0",
@@ -10,6 +13,6 @@
     "@upstash/redis": "^1.28.4"
   },
   "engines": {
-    "node": "24.x"
+    "node": "20.x"
   }
 }
