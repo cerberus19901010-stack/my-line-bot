@@ -1,0 +1,9 @@
+{
+  "name": "line-gemini-bot",
+  "version": "1.0.0",
+  "dependencies": {
+    "@line/bot-sdk": "^7.5.2",
+    "@google/generative-ai": "^0.1.0",
+    "@vercel/kv": "^1.0.1"
+  }
+}
