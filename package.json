@@ -1,7 +1,7 @@
 {
-  "name": "line-gpt5-bot",
-  "version": "1.1.0",
-  "description": "LINE Bot with GPT-5 for Cayla",
+  "name": "line-gemini-via-openai",
+  "version": "1.2.0",
+  "description": "Using Gemini via OpenAI SDK for Cayla",
   "main": "api/webhook.js",
   "dependencies": {
     "@line/bot-sdk": "^7.5.2",
